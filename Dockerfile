@@ -113,15 +113,14 @@ RUN chmod g+rw /home && \
     chown -R theia:theia /home/theia && \
     chown -R theia:theia /home/project;
 
+ADD --chown=theia:theia bin/startup.sh /home/theia/startup.sh
+RUN chmod 755 /home/theia/startup.sh
+
 # Theia application
 
 USER theia
 WORKDIR /home/theia
 ADD config/package.json ./package.json
-
-RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf "https://github.com/" && \
-    git config --global user.email "$GITHUB_EMAIL" && \
-    git config --global user.name "$GITHUB_NAME"
 
 RUN if [ "$strip" = "true" ]; then \
 yarn --pure-lockfile && \
@@ -141,5 +140,6 @@ yarn --cache-folder ./ycache && rm -rf ./ycache && \
 EXPOSE 3000
 ENV SHELL /bin/bash
 
-ENTRYPOINT [ "node", "/home/theia/src-gen/backend/main.js", "/home/project", "--hostname=0.0.0.0" ]
+ENTRYPOINT ["/home/theia/startup.sh"]
+# ENTRYPOINT [ "node", "/home/theia/src-gen/backend/main.js", "/home/project", "--hostname=0.0.0.0" ]
 # ENTRYPOINT [ "yarn", "theia", "start", "/home/project", "--hostname=0.0.0.0" ]
